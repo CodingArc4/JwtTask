@@ -32,10 +32,10 @@ namespace JwtTask
             {
                 //password settings
                 options.Password.RequireDigit = true;
-                options.Password.RequiredLength = 8;  
-                options.Password.RequireNonAlphanumeric = true; 
-                options.Password.RequireUppercase = true; 
-                options.Password.RequiredUniqueChars = 6; 
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequiredUniqueChars = 6;
 
                 //lockout settings
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
@@ -57,7 +57,8 @@ namespace JwtTask
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("veryverysecret.....")),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.
+                    GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
                     ValidateAudience = false,
                     ValidateIssuer = false,
                     ClockSkew = TimeSpan.Zero
@@ -77,7 +78,6 @@ namespace JwtTask
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

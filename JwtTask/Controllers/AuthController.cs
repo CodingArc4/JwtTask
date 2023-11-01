@@ -103,7 +103,6 @@ namespace JwtTask.Controllers
             return BadRequest(new { message = "Invalid model state" });
         }
 
-
         //get list of users
         [HttpGet("GetUsers")]
         public IActionResult GetUsers()
@@ -150,8 +149,7 @@ namespace JwtTask.Controllers
 
                 _context.RevokeTokenRequests.Add(revokedToken);
                 _context.SaveChanges();
-            
-
+          
             return Ok(new { message = "Token revoked successfully" });
         }
 
@@ -159,22 +157,23 @@ namespace JwtTask.Controllers
         //Generate Jwt Token
         private string GenerateJwtToken(ApplicationUser user)
         {
-            List<Claim> claims = new List<Claim> { 
+            List<Claim> claims = new List<Claim> {
                 new Claim(ClaimTypes.Name, user.UserName),
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration.GetSection("AppSettings:Token").Value!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value!));
 
-            var cred = new SigningCredentials(key,SecurityAlgorithms.HmacSha512Signature);
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            
             var token = new JwtSecurityToken(
-                    claims:claims,
-                    expires:DateTime.Now.AddDays(1),
-                    signingCredentials:cred
+                    claims: claims,
+                    expires: DateTime.Now.AddDays(1),
+                    signingCredentials: cred
                 );
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;
         }
+
     }
 }
