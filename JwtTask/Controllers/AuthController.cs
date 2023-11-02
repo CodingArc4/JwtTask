@@ -24,7 +24,8 @@ namespace JwtTask.Controllers
         private readonly IConfiguration _configuration;
 
         public AuthController(SignInManager<ApplicationUser> signInManager, 
-            UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, ApplicationDbContext context)
+            UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager,
+            IConfiguration configuration, ApplicationDbContext context)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -131,7 +132,7 @@ namespace JwtTask.Controllers
 
         //revoke token
         [HttpPost("revoke-token")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public IActionResult RevokeToken([FromBody] RevokeTokenRequest model)
         { 
                 // Check if the token is already revoked
@@ -153,20 +154,40 @@ namespace JwtTask.Controllers
             return Ok(new { message = "Token revoked successfully" });
         }
 
+        [HttpGet("GenericMethod")]
+        [Authorize(Roles = "Student")]
+        public  List<string> GenericMethod()
+        {
+            List<string> students = new List<string>();
+
+            students.Add("munib");
+            students.Add("Sakeel");
+            students.Add("Kamran");
+            students.Add("Abdullah");
+
+            return students;
+        }
+
 
         //Generate Jwt Token
-        private string GenerateJwtToken(ApplicationUser user)
+        private async Task<string> GenerateJwtToken(ApplicationUser user)
         {
-            List<Claim> claims = new List<Claim> {
-                new Claim(ClaimTypes.Name, user.UserName),
-            };
+            var roles =await _userManager.GetRolesAsync(user);
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim(ClaimTypes.Email,user.Email));
+            foreach (var role in roles.ToList())
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Token"]));
 
-            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             
             var token = new JwtSecurityToken(
                     claims: claims,
+                    issuer: "https://localhost:44327/",
+                    audience: "https://localhost:44327/",
                     expires: DateTime.Now.AddDays(1),
                     signingCredentials: cred
                 );
@@ -174,6 +195,5 @@ namespace JwtTask.Controllers
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;
         }
-
     }
 }
